@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
@@ -20,6 +21,9 @@ public class EventService {
 
     @Autowired
     private BalanceProjectionService balanceProjectionService;
+
+    @Autowired
+    private FetchCurrencyAndConvertService fetchCurrencyAndConvertService;
 
     @Transactional(readOnly = true)
     public List<Event> replayEvents(String UserId) {
@@ -34,11 +38,13 @@ public class EventService {
         Amount finalBalance =  eventRepository.findAllByOrderByTimestampAsc().stream()
                 .filter(event -> event.getUserId().equals(userId) && event.getResponseCode().equals(ResponseCode.APPROVED))
                 .map(event -> {
+                    BigDecimal amountValue = new BigDecimal(event.getAmount().getAmount());
+                    BigDecimal factor = fetchCurrencyAndConvertService.getConversionFactor(event.getAmount().getCurrency());
+                    System.out.println(factor);
                     if(event.getEventType().equalsIgnoreCase("LOAD")){
-                        return event.getAmount();
+                        return new Amount(amountValue.divide(factor,3, RoundingMode.DOWN).toString(), event.getAmount().getCurrency(), event.getAmount().getDebitOrCredit());
                     }else{
-                        BigDecimal amountValue = new BigDecimal(event.getAmount().getAmount());
-                        return new Amount(amountValue.negate().toString(), event.getAmount().getCurrency(), event.getAmount().getDebitOrCredit());
+                        return new Amount(amountValue.divide(factor,3, RoundingMode.DOWN).negate().toString(), event.getAmount().getCurrency(), event.getAmount().getDebitOrCredit());
                     }
                 })
                 .reduce(new Amount("0", "USD", "credit"), (a,b)->{

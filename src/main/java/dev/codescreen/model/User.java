@@ -23,7 +23,5 @@ public class User {
     private String email;
     private String password; // You should encrypt and store passwords securely
     private Amount balance; // Assuming balance is in double for simplicity
-    // Add other attributes as needed (e.g., roles)
 
-    // Constructors, getters, setters, and other methods
 }

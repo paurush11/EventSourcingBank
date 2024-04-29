@@ -1,0 +1,45 @@
+package dev.codescreen.service;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.json.JSONObject;
+import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
+
+import java.math.BigDecimal;
+
+@Service
+public class FetchCurrencyAndConvertService {
+
+    private final WebClient webClient;
+    private final String defaultCurrency = "inr";
+
+    private JSONObject jsonObject;
+
+    public FetchCurrencyAndConvertService(WebClient webClient){
+        this.webClient = webClient;
+        fetchJsonFromApi("https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/inr.json");
+    }
+
+    private void fetchJsonFromApi(String url) {
+        webClient.get()  // Specifies the HTTP GET method
+                .uri(url)       // Sets the target URL
+                .retrieve()     // Initiates the retrieval of the resource
+                .bodyToMono(String.class).subscribe(jsonObject->{
+                    this.jsonObject = new JSONObject(jsonObject);
+                });  // Converts the response body to a Mono containing a String
+    }
+
+    public BigDecimal getConversionFactor(String amountCurrency){
+        if(this.jsonObject != null){
+            JSONObject rates = jsonObject.getJSONObject(defaultCurrency);
+            return  rates.getBigDecimal(amountCurrency);
+        }
+        return BigDecimal.ZERO;
+    }
+
+
+
+
+}

@@ -1,6 +1,5 @@
 package dev.codescreen.service;
 
-import dev.codescreen.model.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -13,6 +12,8 @@ public class BalanceProjectionService {
 
     @Autowired
     private UserService userService;
+
+
 
     public void updateBalance(String userId, BigDecimal amount, UpdateOperationType operationType, CardTypeDebitOrCredit type) {
         balances.compute(userId, (key, currentBalance) -> {
@@ -27,6 +28,7 @@ public class BalanceProjectionService {
     public void setBalance(String UserId, BigDecimal bigDecimal){
         balances.put(UserId, bigDecimal);
     }
+
     private BigDecimal calculateNewBalance(BigDecimal currentBalance, BigDecimal amount, UpdateOperationType operationType, CardTypeDebitOrCredit type) {
         switch (operationType) {
             case ADD:
