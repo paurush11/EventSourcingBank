@@ -63,7 +63,8 @@ public class LoadController {
                 event.setResponseCode(ResponseCode.APPROVED);
                 event.setSuccess(true);
                 eventService.saveEvent(event);
-                user.setBalance(newAmount);
+                UserBalance balance = new UserBalance(newAmount.getAmount(), newAmount.getCurrency());
+                user.setBalance(balance);
                 userService.updateUser(user);
             }).exceptionally(ex->{
                 event.setResponseCode(ResponseCode.DECLINED);

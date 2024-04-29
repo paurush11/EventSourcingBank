@@ -22,6 +22,6 @@ public class User {
     private String username;
     private String email;
     private String password; // You should encrypt and store passwords securely
-    private Amount balance; // Assuming balance is in double for simplicity
+    private UserBalance balance; // Assuming balance is in double for simplicity
 
 }

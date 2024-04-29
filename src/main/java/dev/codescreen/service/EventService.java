@@ -18,10 +18,8 @@ import java.util.stream.Collectors;
 public class EventService {
     @Autowired
     private EventRepository eventRepository;
-
     @Autowired
     private BalanceProjectionService balanceProjectionService;
-
     @Autowired
     private FetchCurrencyAndConvertService fetchCurrencyAndConvertService;
 
@@ -39,15 +37,15 @@ public class EventService {
                 .filter(event -> event.getUserId().equals(userId) && event.getResponseCode().equals(ResponseCode.APPROVED))
                 .map(event -> {
                     BigDecimal amountValue = new BigDecimal(event.getAmount().getAmount());
+                    System.out.println(event.getAmount().toString());
                     BigDecimal factor = fetchCurrencyAndConvertService.getConversionFactor(event.getAmount().getCurrency());
-                    System.out.println(factor);
                     if(event.getEventType().equalsIgnoreCase("LOAD")){
                         return new Amount(amountValue.divide(factor,3, RoundingMode.DOWN).toString(), event.getAmount().getCurrency(), event.getAmount().getDebitOrCredit());
                     }else{
                         return new Amount(amountValue.divide(factor,3, RoundingMode.DOWN).negate().toString(), event.getAmount().getCurrency(), event.getAmount().getDebitOrCredit());
                     }
                 })
-                .reduce(new Amount("0", "USD", "credit"), (a,b)->{
+                .reduce(new Amount("0", "inr", "credit"), (a,b)->{
                     BigDecimal total = new BigDecimal(a.getAmount()).add(new BigDecimal(b.getAmount()));
                     return new Amount(total.toString(), a.getCurrency(), total.compareTo(BigDecimal.ZERO) >= 0 ? "credit" : "debit");
                 });

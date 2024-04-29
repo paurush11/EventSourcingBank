@@ -2,10 +2,7 @@ package dev.codescreen.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import dev.codescreen.dto.Amount;
-import dev.codescreen.dto.LoadResponse;
-import dev.codescreen.dto.ResponseCode;
-import dev.codescreen.dto.UserDTO;
+import dev.codescreen.dto.*;
 import dev.codescreen.model.Event;
 import dev.codescreen.model.LoadEvent;
 import dev.codescreen.model.User;
@@ -64,7 +61,8 @@ public class UserController {
             user.setPassword(userDto.getPassword());
             user.setBalance(userDto.getBalance());// Consider encryption here
             User createdUser = userService.createUser(user);
-            LoadEvent event = createFirstLoadEvent(user.getId(), user.getBalance());
+            Amount userAmount = new Amount(userDto.getBalance().getAmount(), userDto.getBalance().getCurrency(), "credit");
+            LoadEvent event = createFirstLoadEvent(user.getId(),userAmount);
             transactionCommandService.sendEvent(event, "loadQueue").thenAccept(aVoid -> {
                 deferredResult.setResult(new ResponseEntity<>(createdUser, HttpStatus.CREATED));
                 event.setResponseCode(ResponseCode.APPROVED);
@@ -112,7 +110,9 @@ public class UserController {
         try {
             Amount finalAmt = eventService.replayEventsAndGetNewBalance(id);
             User existingUser = userService.getUserById(id);
-            existingUser.setBalance(finalAmt);
+            UserBalance balance = new UserBalance(finalAmt.getAmount(), finalAmt.getCurrency());
+            existingUser.setBalance(balance);
+            userService.updateUser(existingUser);
             return new ResponseEntity<User>(existingUser, HttpStatus.ACCEPTED);
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Failed to replay events: " + e.getMessage());

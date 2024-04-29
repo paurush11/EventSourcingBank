@@ -1,9 +1,6 @@
 package dev.codescreen.controller;
 
-import dev.codescreen.dto.Amount;
-import dev.codescreen.dto.AuthorizationRequest;
-import dev.codescreen.dto.AuthorizationResponse;
-import dev.codescreen.dto.ResponseCode;
+import dev.codescreen.dto.*;
 import dev.codescreen.model.AuthorizationEvent;
 import dev.codescreen.model.User;
 import dev.codescreen.repository.EventRepository;
@@ -74,7 +71,8 @@ public class AuthorizationController {
 
                 }
                 eventService.saveEvent(event);
-                user.setBalance(newAmount);
+                UserBalance balance = new UserBalance(newAmount.getAmount(), newAmount.getCurrency());
+                user.setBalance(balance);
                 userService.updateUser(user);
             }).exceptionally(ex -> {
                 eventService.saveEvent(event);

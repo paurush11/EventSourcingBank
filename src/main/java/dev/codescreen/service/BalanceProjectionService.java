@@ -8,13 +8,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 public class BalanceProjectionService {
-    private ConcurrentHashMap<String, BigDecimal> balances = new ConcurrentHashMap<>();
-
-    @Autowired
-    private UserService userService;
-
-
-
+    private final ConcurrentHashMap<String, BigDecimal> balances = new ConcurrentHashMap<>();
     public void updateBalance(String userId, BigDecimal amount, UpdateOperationType operationType, CardTypeDebitOrCredit type) {
         balances.compute(userId, (key, currentBalance) -> {
             if (currentBalance == null) {
